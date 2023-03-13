@@ -66,7 +66,17 @@ add_message_files(
   Trajectory.msg
   Tunnel.msg
   VFR_HUD.msg
+  VehicleAngularVelocity.msg
+  VehicleAttitude.msg
   VehicleInfo.msg
+  VehicleLocalPosition.msg
+  VehicleStatus.msg
+  VehicleControlMode.msg
+  ActuatorArmed.msg
+  ActuatorOutputs.msg
+  VehicleTorqueSetpointMode.msg
+  VehicleThrustSetpointMode.msg
+  ActuatorMotors.msg
   Vibration.msg
   Waypoint.msg
   WaypointList.msg

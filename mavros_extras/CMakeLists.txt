@@ -97,6 +97,16 @@ add_library(mavros_extras
   src/plugins/vision_speed_estimate.cpp
   src/plugins/wheel_odometry.cpp
   src/plugins/guided_target.cpp
+  src/plugins/vehicle_angular_velocity.cpp
+  src/plugins/vehicle_attitude.cpp
+  src/plugins/vehicle_local_position.cpp
+  src/plugins/vehicle_status.cpp
+  src/plugins/vehicle_control_mode.cpp
+  src/plugins/actuator_armed.cpp
+  src/plugins/actuator_outputs.cpp
+  src/plugins/vehicle_torque_setpoint_mode.cpp
+  src/plugins/vehicle_thrust_setpoint_mode.cpp
+  src/plugins/actuator_motors.cpp
 )
 add_dependencies(mavros_extras
   ${catkin_EXPORTED_TARGETS}
