@@ -11,6 +11,7 @@
 #include <mavros/mavros_plugin.h>
 
 #include <mavros_msgs/VehicleAttitude.h>
+#include <geometry_msgs/QuaternionStamped.h>
 
 namespace mavros {
 namespace extra_plugins {
@@ -30,7 +31,8 @@ public:
 	{
 		PluginBase::initialize(uas_);
 
-		vehicle_attitude_pub = nh.advertise<mavros_msgs::VehicleAttitude>("vehicle_attitude", 1000);
+		// vehicle_attitude_pub = nh.advertise<mavros_msgs::VehicleAttitude>("vehicle_attitude", 1000);
+		vehicle_attitude_pub = nh.advertise<geometry_msgs::QuaternionStamped>("vehicle_attitude", 1000);
 	}
 
 	Subscriptions get_subscriptions() override
@@ -47,6 +49,7 @@ private:
 
 	void handle_vehicle_attitude(const mavlink::mavlink_message_t *msg, mavlink::common::msg::VEHICLE_ATTITUDE &vehicle_attitude)
 	{
+		/*
 		auto vmsg = boost::make_shared<mavros_msgs::VehicleAttitude>();
 		vmsg->header.stamp = ros::Time::now();
 
@@ -58,7 +61,18 @@ private:
 		vmsg->delta_q_w = vehicle_attitude.delta_q_w;
 		vmsg->delta_q_x = vehicle_attitude.delta_q_x;
 		vmsg->delta_q_y = vehicle_attitude.delta_q_y;
-		vmsg->delta_q_z = vehicle_attitude.delta_q_z;
+		vmsg->delta_q_z = vehicle_attitude.delta_q_z;		
+
+		vehicle_attitude_pub.publish(vmsg);
+		*/
+
+		auto vmsg = boost::make_shared<geometry_msgs::QuaternionStamped>();
+		vmsg->header.stamp = ros::Time::now();
+
+		vmsg->quaternion.w = vehicle_attitude.q_w;
+		vmsg->quaternion.x = vehicle_attitude.q_x;
+		vmsg->quaternion.y = vehicle_attitude.q_y;
+		vmsg->quaternion.z = vehicle_attitude.q_z;
 
 		vehicle_attitude_pub.publish(vmsg);
 	}

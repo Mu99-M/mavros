@@ -11,6 +11,7 @@
 #include <mavros/mavros_plugin.h>
 
 #include <mavros_msgs/VehicleAngularVelocity.h>
+#include <geometry_msgs/Vector3Stamped.h>
 
 namespace mavros {
 namespace extra_plugins {
@@ -30,7 +31,8 @@ public:
 	{
 		PluginBase::initialize(uas_);
 
-		vehicle_angular_velocity_pub = nh.advertise<mavros_msgs::VehicleAngularVelocity>("vehicle_angular_velocity", 1000);
+		// vehicle_angular_velocity_pub = nh.advertise<mavros_msgs::VehicleAngularVelocity>("vehicle_angular_velocity", 1000);
+		vehicle_angular_velocity_pub = nh.advertise<geometry_msgs::Vector3Stamped>("vehicle_angular_velocity", 1000);
 	}
 
 	Subscriptions get_subscriptions() override
@@ -47,11 +49,20 @@ private:
 
 	void handle_vehicle_angular_velocity(const mavlink::mavlink_message_t *msg, mavlink::common::msg::VEHICLE_ANGULAR_VELOCITY &vehicle_angular_velocity)
 	{
+		/*
 		auto vmsg = boost::make_shared<mavros_msgs::VehicleAngularVelocity>();
 		vmsg->header.stamp = ros::Time::now();
         vmsg->angular_velocity_x = vehicle_angular_velocity.angular_velocity_x;
         vmsg->angular_velocity_y = vehicle_angular_velocity.angular_velocity_y;
         vmsg->angular_velocity_z = vehicle_angular_velocity.angular_velocity_z;
+		vehicle_angular_velocity_pub.publish(vmsg);
+		*/
+	
+		auto vmsg = boost::make_shared<geometry_msgs::Vector3Stamped>();
+		vmsg->header.stamp = ros::Time::now();
+        vmsg->vector.x = vehicle_angular_velocity.angular_velocity_x;
+        vmsg->vector.y = vehicle_angular_velocity.angular_velocity_y;
+        vmsg->vector.z = vehicle_angular_velocity.angular_velocity_z;
 		vehicle_angular_velocity_pub.publish(vmsg);
 	}
 };
