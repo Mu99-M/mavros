@@ -12,6 +12,8 @@
 
 #include <mavros_msgs/VehicleLocalPosition.h>
 #include <geometry_msgs/Vector3Stamped.h>
+#include <geometry_msgs/Point.h>
+
 
 namespace mavros {
 namespace extra_plugins {
@@ -33,9 +35,13 @@ public:
 
 		// vehicle_local_position_pub = nh.advertise<mavros_msgs::VehicleLocalPosition>("vehicle_local_position", 100000);
 		
-		vehicle_pos_pub = nh.advertise<geometry_msgs::Vector3Stamped>("vehicle_local_pos", 100000);
-		vehicle_vel_pub = nh.advertise<geometry_msgs::Vector3Stamped>("vehicle_local_vel", 100000);
-		vehicle_acc_pub = nh.advertise<geometry_msgs::Vector3Stamped>("vehicle_local_acc", 100000);
+		// vehicle_pos_pub = nh.advertise<geometry_msgs::Vector3Stamped>("vehicle_local_pos", 100000);
+		// vehicle_vel_pub = nh.advertise<geometry_msgs::Vector3Stamped>("vehicle_local_vel", 100000);
+		// vehicle_acc_pub = nh.advertise<geometry_msgs::Vector3Stamped>("vehicle_local_acc", 100000);
+
+		vehicle_pos_pub = nh.advertise<geometry_msgs::Point>("vehicle_local_pos", 100000);
+		vehicle_vel_pub = nh.advertise<geometry_msgs::Point>("vehicle_local_vel", 100000);
+		vehicle_acc_pub = nh.advertise<geometry_msgs::Point>("vehicle_local_acc", 100000);
 	}
 
 	Subscriptions get_subscriptions() override
@@ -55,6 +61,27 @@ private:
 
 	void handle_vehicle_local_position(const mavlink::mavlink_message_t *msg, mavlink::common::msg::VEHICLE_LOCAL_POSITION &vehicle_local_position)
 	{	
+		//Point message type
+		auto pos_msg = boost::make_shared<geometry_msgs::Point>();
+		pos_msg->x = vehicle_local_position.x;
+		pos_msg->y = vehicle_local_position.y;
+		pos_msg->z = vehicle_local_position.z;
+		vehicle_pos_pub.publish(pos_msg);
+
+		auto vel_msg = boost::make_shared<geometry_msgs::Point>();
+		vel_msg->x = vehicle_local_position.vx;
+		vel_msg->y = vehicle_local_position.vy;
+		vel_msg->z = vehicle_local_position.vz;
+		vehicle_vel_pub.publish(vel_msg);
+
+		auto acc_msg = boost::make_shared<geometry_msgs::Point>();
+		acc_msg->x = vehicle_local_position.ax;
+		acc_msg->y = vehicle_local_position.ay;
+		acc_msg->z = vehicle_local_position.az;
+		vehicle_acc_pub.publish(acc_msg);
+
+		// Vector3Stamped message type
+		/*
 		auto pos_msg = boost::make_shared<geometry_msgs::Vector3Stamped>();
 		pos_msg->header.stamp = ros::Time::now();
 		pos_msg->vector.x = vehicle_local_position.x;
@@ -75,6 +102,7 @@ private:
 		acc_msg->vector.y = vehicle_local_position.ay;
 		acc_msg->vector.z = vehicle_local_position.az;
 		vehicle_acc_pub.publish(acc_msg);
+		*/
 
 		/*
 		auto vmsg = boost::make_shared<mavros_msgs::VehicleLocalPosition>();
