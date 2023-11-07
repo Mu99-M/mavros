@@ -21,6 +21,7 @@
 #include <mavros_msgs/AttitudeTarget.h>
 #include <mavros_msgs/PositionTarget.h>
 #include <mavros_msgs/GlobalPositionTarget.h>
+#include <std_msgs/Float32MultiArray.h>
 
 namespace mavros {
 namespace std_plugins {
@@ -48,6 +49,7 @@ public:
 		local_sub = sp_nh.subscribe("local", 10, &SetpointRawPlugin::local_cb, this);
 		global_sub = sp_nh.subscribe("global", 10, &SetpointRawPlugin::global_cb, this);
 		attitude_sub = sp_nh.subscribe("attitude", 10, &SetpointRawPlugin::attitude_cb, this);
+		ctbr_sub = sp_nh.subscribe("ctbr", 10, &SetpointRawPlugin::ctbr_callback, this);
 		target_local_pub = sp_nh.advertise<mavros_msgs::PositionTarget>("target_local", 10);
 		target_global_pub = sp_nh.advertise<mavros_msgs::GlobalPositionTarget>("target_global", 10);
 		target_attitude_pub = sp_nh.advertise<mavros_msgs::AttitudeTarget>("target_attitude", 10);
@@ -75,7 +77,7 @@ private:
 	friend class SetAttitudeTargetMixin;
 	ros::NodeHandle sp_nh;
 
-	ros::Subscriber local_sub, global_sub, attitude_sub;
+	ros::Subscriber local_sub, global_sub, attitude_sub, ctbr_sub;
 	ros::Publisher target_local_pub, target_global_pub, target_attitude_pub;
 
 	double thrust_scaling;
@@ -275,6 +277,32 @@ private:
 					thrust);
 
 	}
+
+	void ctbr_callback(const std_msgs::Float32MultiArray::ConstPtr &req)
+	{
+		Eigen::Quaterniond desired_orientation;
+		Eigen::Vector3d baselink_angular_rate;
+		Eigen::Vector3d body_rate;
+		double thrust;
+
+		// ignore thrust is false by default, unless no thrust scaling is set or thrust is zero
+		// auto ignore_thrust = req.thrust != 0.0 && thrust_scaling < 0.0;
+		body_rate[0] = req->data[0];
+		body_rate[1] = req->data[1];
+		body_rate[2] = req->data[2];
+		thrust = req->data[3];
+		
+		set_attitude_target(
+					ros::Time::now().toNSec() / 1000000,
+					mavros_msgs::AttitudeTarget::IGNORE_ATTITUDE,
+					desired_orientation,
+					body_rate,
+					thrust);
+
+	}
+
+
+
 };
 }	// namespace std_plugins
 }	// namespace mavros
