@@ -22,6 +22,8 @@
 #include <mavros_msgs/PositionTarget.h>
 #include <mavros_msgs/GlobalPositionTarget.h>
 #include <std_msgs/Float32MultiArray.h>
+#include <std_msgs/Float32.h>
+#include <geometry_msgs/Point.h>
 
 namespace mavros {
 namespace std_plugins {
@@ -54,6 +56,11 @@ public:
 		target_global_pub = sp_nh.advertise<mavros_msgs::GlobalPositionTarget>("target_global", 10);
 		target_attitude_pub = sp_nh.advertise<mavros_msgs::AttitudeTarget>("target_attitude", 10);
 
+		target_position_pub = sp_nh.advertise<geometry_msgs::Point>("target_position", 10);
+		target_velocity_pub = sp_nh.advertise<geometry_msgs::Point>("target_velocity", 10);
+		target_acceleration_pub = sp_nh.advertise<geometry_msgs::Point>("target_acceleration", 10);
+		target_yaw_pub = sp_nh.advertise<std_msgs::Float32>("target_yaw", 10);
+
 		// Set Thrust scaling in px4_config.yaml, setpoint_raw block.
 		if (!sp_nh.getParam("thrust_scaling", thrust_scaling))
 		{
@@ -79,6 +86,7 @@ private:
 
 	ros::Subscriber local_sub, global_sub, attitude_sub, ctbr_sub;
 	ros::Publisher target_local_pub, target_global_pub, target_attitude_pub;
+	ros::Publisher target_position_pub, target_velocity_pub, target_acceleration_pub, target_yaw_pub;
 
 	double thrust_scaling;
 
@@ -109,6 +117,29 @@ private:
 		target->yaw_rate = yaw_rate;
 
 		target_local_pub.publish(target);
+
+		geometry_msgs::Point target_pos;
+		target_pos.x = tgt.x;
+		target_pos.y = tgt.y;
+		target_pos.z = tgt.z;
+
+		geometry_msgs::Point target_vel;
+		target_vel.x = tgt.vx;
+		target_vel.y = tgt.vy;
+		target_vel.z = tgt.vz;
+
+		geometry_msgs::Point target_acc;
+		target_acc.x = tgt.afx;
+		target_acc.y = tgt.afy;
+		target_acc.z = tgt.afz;
+
+		std_msgs::Float32 target_yaw;
+		target_yaw.data = tgt.yaw;
+
+		target_position_pub.publish(target_pos);
+		target_velocity_pub.publish(target_vel);
+		target_acceleration_pub.publish(target_acc);
+		target_yaw_pub.publish(target_yaw);
 	}
 
 	void handle_position_target_global_int(const mavlink::mavlink_message_t *msg, mavlink::common::msg::POSITION_TARGET_GLOBAL_INT &tgt)

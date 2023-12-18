@@ -27,6 +27,9 @@
 #include <mavros_msgs/VehicleInfo.h>
 #include <mavros_msgs/VehicleInfoGet.h>
 #include <mavros_msgs/MessageInterval.h>
+#include <std_msgs/Bool.h>
+#include <std_msgs/Int32.h>
+#include <mavros_msgs/MessageInterval.h>
 
 
 #ifdef HAVE_SENSOR_MSGS_BATTERYSTATE_MSG
@@ -556,6 +559,9 @@ public:
 		batt_pub = nh.advertise<BatteryMsg>("battery", 10);
 		estimator_status_pub = nh.advertise<mavros_msgs::EstimatorStatus>("estimator_status", 10);
 		statustext_pub = nh.advertise<mavros_msgs::StatusText>("statustext/recv", 10);
+		arm_status_pub = nh.advertise<std_msgs::Bool>("armed", 10);
+		connect_status_pub = nh.advertise<std_msgs::Bool>("connected", 10);
+		status_pub = nh.advertise<std_msgs::Int32>("mode", 10);
 		statustext_sub = nh.subscribe("statustext/send", 10, &SystemStatusPlugin::statustext_cb, this);
 		rate_srv = nh.advertiseService("set_stream_rate", &SystemStatusPlugin::set_rate_cb, this);
 		mode_srv = nh.advertiseService("set_mode", &SystemStatusPlugin::set_mode_cb, this);
@@ -598,6 +604,9 @@ private:
 	ros::Publisher batt_pub;
 	ros::Publisher estimator_status_pub;
 	ros::Publisher statustext_pub;
+	ros::Publisher arm_status_pub;
+	ros::Publisher connect_status_pub;
+	ros::Publisher status_pub;
 	ros::Subscriber statustext_sub;
 	ros::ServiceServer rate_srv;
 	ros::ServiceServer mode_srv;
@@ -753,6 +762,18 @@ private:
 		state_msg->system_status = enum_value(MAV_STATE::UNINIT);
 
 		state_pub.publish(state_msg);
+
+		auto arm_msg = boost::make_shared<std_msgs::Bool>();
+		arm_msg->data = false;
+		arm_status_pub.publish(arm_msg);
+
+		auto status_msg = boost::make_shared<std_msgs::Int32>();
+		status_msg->data = enum_value(MAV_STATE::UNINIT);
+		status_pub.publish(status_msg);
+
+		auto connected_msg = boost::make_shared<std_msgs::Bool>();
+		connected_msg->data = false;
+		connect_status_pub.publish(connected_msg);
 	}
 
 	/* -*- message handlers -*- */
@@ -807,6 +828,18 @@ private:
 
 		state_pub.publish(state_msg);
 		hb_diag.tick(hb.type, hb.autopilot, state_msg->mode, hb.system_status);
+
+		auto arm_msg = boost::make_shared<std_msgs::Bool>();
+		arm_msg->data = !!(hb.base_mode & enum_value(MAV_MODE_FLAG::SAFETY_ARMED));
+		arm_status_pub.publish(arm_msg);
+
+		auto connected_msg = boost::make_shared<std_msgs::Bool>();
+		connected_msg->data = true;
+		connect_status_pub.publish(connected_msg);
+
+		auto status_msg = boost::make_shared<std_msgs::Int32>();
+		status_msg->data = hb.system_status;
+		status_pub.publish(status_msg);
 	}
 
 	void handle_extended_sys_state(const mavlink::mavlink_message_t *msg, mavlink::common::msg::EXTENDED_SYS_STATE &state)
